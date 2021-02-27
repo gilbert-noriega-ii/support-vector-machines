@@ -11,13 +11,10 @@ from sklearn.svm import LinearSVC
 
 
 
-def plot_svc_decision_boundary(svm_clf, xmin, xmax, X, y):
+def plot_svc_decision_boundary(svm_clf, xmin, xmax):
     '''
     This function plots the decision boundary line.
     '''
-    #SVM Classifier model
-    svm_clf = SVC(kernel="linear", C=float("inf"))
-    svm_clf.fit(X, y)
 
     w = svm_clf.coef_[0]
     b = svm_clf.intercept_[0]
@@ -70,7 +67,7 @@ def large_margin_classification(X,y):
     plt.axis([0, 5.5, 0, 2])
 
     plt.sca(axes[1])
-    plot_svc_decision_boundary(svm_clf, 0, 5.5, X, y)
+    plot_svc_decision_boundary(svm_clf, 0, 5.5)
     plt.plot(X[:, 0][y==1], X[:, 1][y==1], "bs")
     plt.plot(X[:, 0][y==0], X[:, 1][y==0], "yo")
     plt.xlabel("Petal length", fontsize=14)
@@ -91,7 +88,7 @@ def feature_scaling_sensitivity():
     plt.subplot(121)
     plt.plot(Xs[:, 0][ys==1], Xs[:, 1][ys==1], "bo")
     plt.plot(Xs[:, 0][ys==0], Xs[:, 1][ys==0], "ms")
-    plot_svc_decision_boundary(svm_clf, 0, 6, Xs, ys)
+    plot_svc_decision_boundary(svm_clf, 0, 6)
     plt.xlabel("$x_0$", fontsize=20)
     plt.ylabel("$x_1$    ", fontsize=20, rotation=0)
     plt.title("Unscaled", fontsize=16)
@@ -104,7 +101,7 @@ def feature_scaling_sensitivity():
     plt.subplot(122)
     plt.plot(X_scaled[:, 0][ys==1], X_scaled[:, 1][ys==1], "bo")
     plt.plot(X_scaled[:, 0][ys==0], X_scaled[:, 1][ys==0], "ms")
-    plot_svc_decision_boundary(svm_clf, -2, 2, Xs, ys)
+    plot_svc_decision_boundary(svm_clf, -2, 2)
     plt.xlabel("$x_0$", fontsize=20)
     plt.ylabel("$x'_1$  ", fontsize=20, rotation=0)
     plt.title("Scaled", fontsize=16)
@@ -146,7 +143,7 @@ def sensitivity_to_outliers(X,y):
     plt.sca(axes[1])
     plt.plot(Xo2[:, 0][yo2==1], Xo2[:, 1][yo2==1], "bs")
     plt.plot(Xo2[:, 0][yo2==0], Xo2[:, 1][yo2==0], "yo")
-    plot_svc_decision_boundary(svm_clf, 0, 5.5, Xo2, yo2)
+    plot_svc_decision_boundary(svm_clf, 0, 5.5)
     plt.xlabel("Petal length", fontsize=14)
     plt.annotate("Outlier",
                  xy=(X_outliers[1][0], X_outliers[1][1]),
@@ -160,70 +157,106 @@ def sensitivity_to_outliers(X,y):
 
 
 
-# def large_vs_fewer_margin_violations(X, y):
-#     '''
-#     This functions shows the affects of having large and
-#     small margin violations.
-#     '''
-#     svm_clf = Pipeline([
-#             ("scaler", StandardScaler()),
-#             ("linear_svc", LinearSVC(C=1, loss="hinge", random_state=42)),
-#         ])
+def large_vs_fewer_margin_violations(X, y):
+    '''
+    This functions shows the affects of having large and
+    small margin violations.
+    '''
 
-#     svm_clf.fit(X, y)
+    #create a pipeline    
+    svm_clf = Pipeline([
+            ("scaler", StandardScaler()),
+            ("linear_svc", LinearSVC(C=1, loss="hinge", random_state=42)),
+        ])
 
-#     svm_clf.predict([[5.5, 1.7]])
+    svm_clf.fit(X, y)
 
-#     scaler = StandardScaler()
-#     svm_clf1 = LinearSVC(C=1, loss="hinge", random_state=42)
-#     svm_clf2 = LinearSVC(C=100, loss="hinge", random_state=42)
+    svm_clf.predict([[5.5, 1.7]])
 
-#     scaled_svm_clf1 = Pipeline([
-#             ("scaler", scaler),
-#             ("linear_svc", svm_clf1),
-#         ])
-#     scaled_svm_clf2 = Pipeline([
-#             ("scaler", scaler),
-#             ("linear_svc", svm_clf2),
-#         ])
+    scaler = StandardScaler()
+    svm_clf1 = LinearSVC(C=1, loss="hinge", random_state=42)
+    svm_clf2 = LinearSVC(C=100, loss="hinge", random_state=42)
 
-#     scaled_svm_clf1.fit(X, y)
-#     scaled_svm_clf2.fit(X, y)
+    scaled_svm_clf1 = Pipeline([
+            ("scaler", scaler),
+            ("linear_svc", svm_clf1),
+        ])
+    scaled_svm_clf2 = Pipeline([
+            ("scaler", scaler),
+            ("linear_svc", svm_clf2),
+        ])
 
-#     # Convert to unscaled parameters
-#     b1 = svm_clf1.decision_function([-scaler.mean_ / scaler.scale_])
-#     b2 = svm_clf2.decision_function([-scaler.mean_ / scaler.scale_])
-#     w1 = svm_clf1.coef_[0] / scaler.scale_
-#     w2 = svm_clf2.coef_[0] / scaler.scale_
-#     svm_clf1.intercept_ = np.array([b1])
-#     svm_clf2.intercept_ = np.array([b2])
-#     svm_clf1.coef_ = np.array([w1])
-#     svm_clf2.coef_ = np.array([w2])
+    scaled_svm_clf1.fit(X, y)
+    scaled_svm_clf2.fit(X, y)
 
-#     # Find support vectors (LinearSVC does not do this automatically)
-#     t = y * 2 - 1
-#     support_vectors_idx1 = (t * (X.dot(w1) + b1) < 1).ravel()
-#     support_vectors_idx2 = (t * (X.dot(w2) + b2) < 1).ravel()
-#     svm_clf1.support_vectors_ = X[support_vectors_idx1]
-#     svm_clf2.support_vectors_ = X[support_vectors_idx2]
+    # Convert to unscaled parameters
+    b1 = svm_clf1.decision_function([-scaler.mean_ / scaler.scale_])
+    b2 = svm_clf2.decision_function([-scaler.mean_ / scaler.scale_])
+    w1 = svm_clf1.coef_[0] / scaler.scale_
+    w2 = svm_clf2.coef_[0] / scaler.scale_
+    svm_clf1.intercept_ = np.array([b1])
+    svm_clf2.intercept_ = np.array([b2])
+    svm_clf1.coef_ = np.array([w1])
+    svm_clf2.coef_ = np.array([w2])
 
-#     fig, axes = plt.subplots(ncols=2, figsize=(10,2.7), sharey=True)
+    # Find support vectors (LinearSVC does not do this automatically)
+    t = y * 2 - 1
+    support_vectors_idx1 = (t * (X.dot(w1) + b1) < 1).ravel()
+    support_vectors_idx2 = (t * (X.dot(w2) + b2) < 1).ravel()
+    svm_clf1.support_vectors_ = X[support_vectors_idx1]
+    svm_clf2.support_vectors_ = X[support_vectors_idx2]
 
-#     plt.sca(axes[0])
-#     plt.plot(X[:, 0][y==1], X[:, 1][y==1], "g^", label="Iris virginica")
-#     plt.plot(X[:, 0][y==0], X[:, 1][y==0], "bs", label="Iris versicolor")
-#     plot_svc_decision_boundary(svm_clf1, 4, 5.9, X, y)
-#     plt.xlabel("Petal length", fontsize=14)
-#     plt.ylabel("Petal width", fontsize=14)
-#     plt.legend(loc="upper left", fontsize=14)
-#     plt.title("$C = {}$".format(svm_clf1.C), fontsize=16)
-#     plt.axis([4, 5.9, 0.8, 2.8])
 
-#     plt.sca(axes[1])
-#     plt.plot(X[:, 0][y==1], X[:, 1][y==1], "g^")
-#     plt.plot(X[:, 0][y==0], X[:, 1][y==0], "bs")
-#     plot_svc_decision_boundary(svm_clf2, 4, 5.99, X, y)
-#     plt.xlabel("Petal length", fontsize=14)
-#     plt.title("$C = {}$".format(svm_clf2.C), fontsize=16)
-#     plt.axis([4, 5.9, 0.8, 2.8])
-#     plt.show()
+    #plot the large vs small margin violations
+    fig, axes = plt.subplots(ncols=2, figsize=(10,2.7), sharey=True)
+
+    plt.sca(axes[0])
+    plt.plot(X[:, 0][y==1], X[:, 1][y==1], "g^", label="Iris virginica")
+    plt.plot(X[:, 0][y==0], X[:, 1][y==0], "bs", label="Iris versicolor")
+    plot_svc_decision_boundary(svm_clf1, 4, 5.9)
+    plt.xlabel("Petal length", fontsize=14)
+    plt.ylabel("Petal width", fontsize=14)
+    plt.legend(loc="upper left", fontsize=14)
+    plt.title("$C = {}$".format(svm_clf1.C), fontsize=16)
+    plt.axis([4, 5.9, 0.8, 2.8])
+
+    plt.sca(axes[1])
+    plt.plot(X[:, 0][y==1], X[:, 1][y==1], "g^")
+    plt.plot(X[:, 0][y==0], X[:, 1][y==0], "bs")
+    plot_svc_decision_boundary(svm_clf2, 4, 5.99)
+    plt.xlabel("Petal length", fontsize=14)
+    plt.title("$C = {}$".format(svm_clf2.C), fontsize=16)
+    plt.axis([4, 5.9, 0.8, 2.8])
+    plt.show()
+
+
+def adding_features():
+    X1D = np.linspace(-4, 4, 9).reshape(-1, 1)
+    X2D = np.c_[X1D, X1D**2]
+    y = np.array([0, 0, 1, 1, 1, 1, 1, 0, 0])
+
+    plt.figure(figsize=(10, 3))
+
+    plt.subplot(121)
+    plt.grid(True, which='both')
+    plt.axhline(y=0, color='k')
+    plt.plot(X1D[:, 0][y==0], np.zeros(4), "bs")
+    plt.plot(X1D[:, 0][y==1], np.zeros(5), "g^")
+    plt.gca().get_yaxis().set_ticks([])
+    plt.xlabel(r"$x_1$", fontsize=20)
+    plt.axis([-4.5, 4.5, -0.2, 0.2])
+
+    plt.subplot(122)
+    plt.grid(True, which='both')
+    plt.axhline(y=0, color='k')
+    plt.axvline(x=0, color='k')
+    plt.plot(X2D[:, 0][y==0], X2D[:, 1][y==0], "bs")
+    plt.plot(X2D[:, 0][y==1], X2D[:, 1][y==1], "g^")
+    plt.xlabel(r"$x_1$", fontsize=20)
+    plt.ylabel(r"$x_2$  ", fontsize=20, rotation=0)
+    plt.gca().get_yaxis().set_ticks([0, 4, 8, 12, 16])
+    plt.plot([-4.5, 4.5], [6.5, 6.5], "r--", linewidth=3)
+    plt.axis([-4.5, 4.5, -1, 17])
+
+    plt.subplots_adjust(right=1)
+    plt.show()
