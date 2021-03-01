@@ -444,3 +444,44 @@ def nonlinear_svm_regression(svm_poly_reg1, svm_poly_reg2, X, y):
     plt.title(r"$degree={}, C={}, \epsilon = {}$".format(svm_poly_reg2.degree, svm_poly_reg2.C, svm_poly_reg2.epsilon), fontsize=18)
 
     plt.show()
+
+
+
+def comparing_models(lin_clf, svm_clf, sgd_clf, X, y):
+    '''
+    This function compares the LinearSVC, SVC and SGD Classifier.
+    '''
+
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+
+    lin_clf.fit(X_scaled, y)
+    svm_clf.fit(X_scaled, y)
+    sgd_clf.fit(X_scaled, y)
+
+    # Compute the slope and bias of each decision boundary
+    w1 = -lin_clf.coef_[0, 0]/lin_clf.coef_[0, 1]
+    b1 = -lin_clf.intercept_[0]/lin_clf.coef_[0, 1]
+    w2 = -svm_clf.coef_[0, 0]/svm_clf.coef_[0, 1]
+    b2 = -svm_clf.intercept_[0]/svm_clf.coef_[0, 1]
+    w3 = -sgd_clf.coef_[0, 0]/sgd_clf.coef_[0, 1]
+    b3 = -sgd_clf.intercept_[0]/sgd_clf.coef_[0, 1]
+
+    # Transform the decision boundary lines back to the original scale
+    line1 = scaler.inverse_transform([[-10, -10 * w1 + b1], [10, 10 * w1 + b1]])
+    line2 = scaler.inverse_transform([[-10, -10 * w2 + b2], [10, 10 * w2 + b2]])
+    line3 = scaler.inverse_transform([[-10, -10 * w3 + b3], [10, 10 * w3 + b3]])
+
+    # Plot all three decision boundaries
+    plt.figure(figsize=(11, 4))
+    plt.plot(line1[:, 0], line1[:, 1], "k:", label="LinearSVC")
+    plt.plot(line2[:, 0], line2[:, 1], "b--", linewidth=2, label="SVC")
+    plt.plot(line3[:, 0], line3[:, 1], "r-", label="SGDClassifier")
+    plt.plot(X[:, 0][y==1], X[:, 1][y==1], "bs") # label="Iris versicolor"
+    plt.plot(X[:, 0][y==0], X[:, 1][y==0], "yo") # label="Iris setosa"
+    plt.xlabel("Petal length", fontsize=14)
+    plt.ylabel("Petal width", fontsize=14)
+    plt.legend(loc="upper center", fontsize=14)
+    plt.axis([0, 5.5, 0, 2])
+
+    plt.show()
